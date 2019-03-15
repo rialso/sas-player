@@ -1,0 +1,97 @@
+
+
+.playlist {
+    -moz-osx-font-smoothing: auto;
+    -webkit-font-smoothing: subpixel-antialiased;
+    direction: ltr;
+    font-family: Avenir, "Avenir Next", "Helvetica Neue", "Segoe UI", Helvetica, Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+    
+
+    max-width: 100%;
+    min-width: 200px;
+    position: relative;
+    text-shadow: none;
+    transition: box-shadow .3s ease;
+
+    list-style: none;
+    margin: : 0;
+    padding: 0;
+}
+
+.playlist li.highlighted{
+    background-color: #ccc;
+}
+.playlist li{
+    cursor: default;
+}
+
+
+.playlist {
+    column-count: 1;
+    column-gap: 40px;
+}
+
+@media screen and (min-width: 1000px) {
+
+    .playlist {
+        column-count: 2;
+    }
+}
+
+@media screen and (min-width: 2000px) {
+
+    .playlist {
+        column-count: 3;
+    }
+}
+
+.plItem{
+     /*font-weight: 500;*/
+    display: flex;
+    flex-direction: row;
+    line-height:2.5em;
+    border-bottom:1px solid #ccc;
+
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.plItem .plNum{
+    display: inline-block;
+    width: 40px;
+}
+.plItem .plTitle{
+    display: inline-block;
+    width: 100%;
+}
+
+/*.plyr audio, .plyr video {
+    border-radius: inherit;
+    height: auto;
+    vertical-align: middle;
+    width: 100%
+}
+
+.plyr button {
+    font: inherit;
+    line-height: inherit;
+    width: auto
+}
+
+.plyr:focus {
+    outline: 0
+}
+
+.plyr--full-ui {
+    box-sizing: border-box
+}
+
+.plyr--full-ui * , .plyr--full-ui ::after, .plyr--full-ui ::before {
+    box-sizing: inherit
+}
+
+.plyr--full-ui a, .plyr--full-ui button, .plyr--full-ui input, .plyr--full-ui label {
+    touch-action: manipulation
+}*/
+

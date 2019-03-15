@@ -1,14 +1,9 @@
 
 
-import sas_player   from './../lib/sas-player/source/sas-player.js';
+import sas_player   from './../../source/sas-player.js';
 
-    // import sas_play   from './lib/sas-player/source/sas-play.js';
-    // let play = document.querySelector('#play');
-    // var test = new sas_play(play);
-    // test.load(json_data)
-
-function init (key, params){
-    let json_data = JSONdata;
+function init (object){
+    let data = object;
     let eplayer = document.querySelector('#player');
     let eplaylist = document.querySelector('#playlist')
 
@@ -19,7 +14,7 @@ function init (key, params){
     var test = new sas_player(audio, {
         debug       :true,
         elem        :eplayer,
-        data        :json_data,
+        //data        :data,
         current        :(obj) => {
             console.log('[sasPlayer current]: ', obj)
         },
@@ -35,9 +30,9 @@ function init (key, params){
     let playlist = [];
     let audioPos = 0;
 
-    for(let a of json_data){
+    for(let a of data){
         
-        //console.log(a)
+        console.log(a)
 
         let li = document.createElement('li');
         li.innerHTML =  '<div class="plItem"> \
@@ -48,7 +43,7 @@ function init (key, params){
 
         eplaylist.appendChild(li);
 
-        a.file = a.file.replace('/Users/rtb/Music/__info/music/', '../')
+        a.file = a.file.replace('/Users/rtb/Music/__info/music/', '../../')
         playlist.push( a )
     }
 
@@ -118,10 +113,20 @@ function init (key, params){
     function loadTrack(){
         console.log('this.audio loadTrack: ', audioPos)
 
+        // var reader = new FileReader();
+        // reader.onload = function (e) {
+        //     //$audio.attr('src', e.target.result);
+        //     test.src = e.target.result;
+        //     // test.play();
+        // }
+        // reader.readAsDataURL(playlist[audioPos]);
+
+
+
         test.src = playlist[audioPos].file;
     }
 }
 
-init();
+
 
 export default init;

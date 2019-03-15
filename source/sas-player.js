@@ -227,6 +227,7 @@ export default class sas_player{
     set src(value){
         console.log(value)
         this.media.src = value;
+        //this.media.play();
     }
 
     play(){

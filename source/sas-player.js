@@ -38,7 +38,7 @@ let html = `
                     <span id="time-current">0:00</span>/<span id="time-total">0:00</span>
                 </span>
                 <span class="timeline-wrap">
-                    <input type="range" id="timeline" class="timeline" min="1" max="10000" step="1" value="0">
+                    <input type="range" id="timeline" class="timeline" min="1" max="100" step="1" value="0">
                 </span>
                 <button type="button" id="mute">Mute</button>
                 <span class="volume-wrap">
@@ -49,28 +49,38 @@ let html = `
         </div>                    
     </div>
 `;
+// <div id="player__controls" class="player__controls">
+// </div>
+/*
+        <div class="buffered">
+          <span id="buffered-amount"></span>
+        </div>
+        <div class="progress">
+          <span id="progress-amount"></span>
+        </div>
+        */
 
 let tpl_base_controls = `
-    <div id="player__controls" class="player__controls">
-        <div class="current-controls">
-            <button id="prevbtn" class="btn__prev">Prev</button>    
-            <button id="playpausebtn" class="btn__play">
+    
+        <div class="current-controls">   
+            <button id="playpause" class="btn__play">
                 <span class="button-label">Play</span>
             </button> 
-            <button id="nextbtn" class="btn__next">Next</button>
         </div>
         <div class="current-track__progress">
-                <input type="range" id="timeline" class="media timeline" min="1" max="10000" step="1" value="0">
+                <input type="range" id="timeline" class="media timeline" min="0" max="10000" step="1" value="0">
+                <progress id="progress-buffer" class="progress-buffer" min="0" max="100" value="100" role="progressbar">% buffered</progress>
         </div>
-        <div id="time-current" class="timebox time-current">00:00</div>
+        <div id="time-current"  class="timebox time-current">00:00</div>
         <div id="time-duration" class="timebox time-duration">00:00</div>
         <div class="current-track__volume">
+            <div>
                 <button id="mute" class="icon btn__volume" farm-icon="#icon-volume-medium">
                     <span class="button-label">Mute</span>
                 </button>
+            </div>
                 <input id="volume" type="range" class="volume timeline" min="0" max="1" step="0.1" value="1"> 
         </div>
-    </div>
 `;
 // orient="vertical"
 
@@ -87,17 +97,9 @@ export default class sas_player{
             colorProgress :'#1ed760',
             colorTrack    :'#efefef',
             showHide      :false,
-            current    :($data) => { return true; },
-            libraryImage    :($data) => {
-                return new Promise((resolve, reject) => {
-                    resolve();
-                });
-            },
-            libraryVideo    :($data) => {
-                return new Promise((resolve, reject) => {
-                    resolve();
-                });
-            }
+            inside        :false,
+            current       :($data) => { return true; },
+            ended         :($data) => { return true; }
         }
         this.opts = this.extend(defaults, $opts);
 
@@ -111,10 +113,6 @@ export default class sas_player{
         this.muteFlag   = true;
         
         this.duration; // Duration of audio clip
-        //var server = farm.r.server+'/music/';
-
-        //var server = 'http://localhost:3023/api/track/';
-        //this.server = farm.r.serverTracks;
 
         this.icon = this.icons();
 
@@ -133,44 +131,38 @@ export default class sas_player{
         return to;
     }
 
-    load(data){
-
-        super.load(data);
-    }
     controls(){
+
+        this.elem = document.createElement('div');
+        this.elem.id = "player__controls";
+        this.elem.classList.add('player__controls');
+        if(this.opts.inside){
+            this.elem.classList.add('inside');
+        }
+        this.elem.innerHTML = tpl_base_controls;
+
         // Hide the default controls
         this.media.controls = false;
 
-        // let elem = this.opts.editor;
-        // elem.innerHTML = tpl_base;
+        this.media.parentNode.insertBefore(this.elem, this.media.nextSibling);
 
-        // this.playButton = document.getElementById("playpausebtn");
-        // this.playButton.innerHTML = this.icon.iconPlay;
-
-
-        // this.playButton.addEventListener('click', () => this.playPause() );
-
-        let elem = this.opts.elem;
-        elem.innerHTML = tpl_base_controls;
-
-        this.playbtn = elem.querySelector("#playpausebtn");
+        this.playbtn = this.elem.querySelector("#playpause");
         // this.next = elem.querySelector("#nextbtn");
         // this.prev = elem.querySelector("#prevbtn");
-        this.timeline = elem.querySelector('#timeline'); // timeline
-        this.time_current = elem.querySelector('#time-current');
-        this.time_duration = elem.querySelector('#time-duration');
-        this.volume = elem.querySelector('#volume');
-        this.mute = elem.querySelector('#mute');
+        this.timeline = this.elem.querySelector('#timeline'); // timeline
+        this.time_current = this.elem.querySelector('#time-current');
+        this.time_duration = this.elem.querySelector('#time-duration');
+        this.volume = this.elem.querySelector('#volume');
+        this.mute = this.elem.querySelector('#mute');
+        this.progress_buffer = this.elem.querySelector("#progress-buffer");
 
-        this.max = this.timeline.getAttribute('max');
-        this.min = this.timeline.getAttribute('min');
+
 
 
         this.playbtn.addEventListener('click', () => this.play() );
         // this.next.addEventListener('click', () => this.nextTrack() );
         // this.prev.addEventListener('click', () => this.prevTrack() );
 
-        //var audio = document.getElementById('audio'); // id for audio element
         // Makes playhead draggable 
         var clickEventType = (document.ontouchstart!==null) ? 'mousedown' : 'touchstart';
 
@@ -182,25 +174,89 @@ export default class sas_player{
 
         this.volume.addEventListener("mousemove", (e) => this.setVolume(e));
         this.volume.addEventListener("change", (e) => this.setVolume() );
+
         this.mute.addEventListener("click", (e) => this.setMute(e));
 
         this.media.addEventListener("ended", (e) => this.ended(e));
+        this.media.addEventListener('progress', (e) => this.bufferRange(e));
 
-        //audio.addEventListener('progress', progress);
         // timeupdate event listener
         this.media.addEventListener("timeupdate", (e) => this.timeUpdate(e));
         // Gets audio file duration
         this.media.addEventListener("canplaythrough", () => this.prepareData());
 
         this.media.addEventListener('volumechange', (e) => this.volumeChange());
+        this.media.addEventListener('play', (e) => this.controlPlay());
+        this.media.addEventListener('pause', (e) => this.controlPause());
 
         window.addEventListener("keyup", (e) => this.playPauseKb(e));
 
-
         this.btn__text_play = this.playbtn.querySelector('span');
         this.btn__text_mute = this.mute.querySelector('span');
+
+        if(this.opts.showHide){
+            // show hide videocontrols
+            this.media.addEventListener('mouseover', (e) => this.opacityTrue() );
+            this.media.addEventListener('mouseout', (e) => this.opacityFalse());
+            this.elem.addEventListener('mouseover', (e) => this.opacityTrue()); 
+            this.elem.addEventListener('mouseout', (e) => this.opacityFalse());
+        }
+
+
+
+
+        this.media.addEventListener('loadedmetadata', () => {
+            if (this.media.buffered.length === 0) return;
+
+            var bufferedSeconds = this.media.buffered.end(0) - this.media.buffered.start(0);
+            console.log(bufferedSeconds + ' seconds of video are ready to play!');
+
+
+          });
+
+        let isDebug = true // toggle this to turn on / off for global controll
+
+        if (isDebug) this.debug = console.log.bind(window.console)
+        else this.debug = function(){}
     }
 
+    initial(){
+        this.elem.classList.add('player--loading');
+        this.progress_buffer.style.width = '100%';
+        this.setVolume();
+    }
+
+    resetRanges(){
+
+    }
+
+    controlPlay(){
+
+        this.debug('player--loading')
+
+        this.elem.classList.add('player--loading');
+        this.elem.querySelector("#progress-buffer").style.width = '100%';
+
+        // playButton.innerHTML = iconPause;
+        if(this.opts.showHide){
+            setTimeout( this.opacityFalse(), 3000)
+        }
+    }
+
+    controlPause(){ 
+        // playButton.innerHTML = iconPlay;
+        if(this.opts.showHide){
+            this.opacityTrue();
+        }
+    }
+
+    opacityTrue() {
+        this.elem.style.opacity = 1;
+    }
+
+    opacityFalse() {
+        this.elem.style.opacity = 0;
+    }
 
     playPauseKb(event) {
         var x = event.which || event.keyCode;
@@ -231,6 +287,7 @@ export default class sas_player{
     }
 
     play(){
+        //this.media.load();
         if (this.media.paused || this.media.ended) {
             this.media.play();
         } else {
@@ -240,7 +297,7 @@ export default class sas_player{
     }
 
     ended(){ 
-        console.log('media - Ended')
+        this.debug('media - Ended')
         // return this.media.ended;
 
         this.opts.ended();
@@ -248,10 +305,17 @@ export default class sas_player{
         //this.nextTrack()
     }
 
-    prepareData(){ 
+    prepareData(){
+
+        this.debug('start prepareData.')
+
         this.duration = this.media.duration; 
         this.timeUpdate();
         this.setVolume();
+
+        console.log('end:', this.duration)
+
+        this.elem.classList.remove('player--loading');
     }
 
     // mouseDown EventListener
@@ -275,7 +339,7 @@ export default class sas_player{
     }
 
     setCurrenTime() {
-        this.media.currentTime = (this.duration * this.timeline.value) / this.max;
+        this.media.currentTime = (this.duration * this.timeline.value) / this.timeline.max;
     }
 
     // timeUpdate 
@@ -283,23 +347,28 @@ export default class sas_player{
     timeUpdate() {
 
         this.progress_color()  
+        if (this.duration > 0) {
+            this.timeline.value = ((this.media.currentTime / this.duration) * this.timeline.max);
 
-        this.timeline.value = ((this.media.currentTime / this.duration) * this.max);
-
-        if (this.media.currentTime == this.duration) {
-            this.state();
+            if (this.media.currentTime == this.duration) {
+                this.state();
+            }
+            var curmins = Math.floor(this.media.currentTime / 60);
+            var cursecs = Math.floor(this.media.currentTime - curmins * 60);
+            var durmins = Math.floor(this.media.duration / 60);
+            var dursecs = Math.floor(this.media.duration - durmins * 60);
+            if(cursecs < 10){ cursecs = "0"+cursecs; }
+            if(dursecs < 10){ dursecs = "0"+dursecs; }
+            // para poner 2 digitos en los minutos
+            if(curmins < 10){ curmins = "0"+curmins; }
+            if(durmins < 10){ durmins = "0"+durmins; }
+            this.time_current.innerHTML = curmins+":"+cursecs;
+            if(isNaN(this.media.duration)){
+                this.time_duration.innerHTML = "-:-";
+            }else{
+                this.time_duration.innerHTML = durmins+":"+dursecs;
+            }
         }
-        var curmins = Math.floor(this.media.currentTime / 60);
-        var cursecs = Math.floor(this.media.currentTime - curmins * 60);
-        var durmins = Math.floor(this.media.duration / 60);
-        var dursecs = Math.floor(this.media.duration - durmins * 60);
-        if(cursecs < 10){ cursecs = "0"+cursecs; }
-        if(dursecs < 10){ dursecs = "0"+dursecs; }
-        // para poner 2 digitos en los minutos
-        if(curmins < 10){ curmins = "0"+curmins; }
-        if(durmins < 10){ durmins = "0"+durmins; }
-        this.time_current.innerHTML = curmins+":"+cursecs;
-        this.time_duration.innerHTML = durmins+":"+dursecs;
     }
 
     progress_color() {
@@ -307,11 +376,13 @@ export default class sas_player{
         // rojo: #cc181e
         // verde: #1ed760
 
-        let cp = this.opts.colorProgress;
-        let ct = this.opts.colorTrack;
-        let perc = this.timeline.value/100;
-        let grad = 'linear-gradient(to right, '+cp+' 0%, '+cp+' '+perc +'%, '+ct+' '+perc+'%, '+ct+' 100%)'
-        this.timeline.style.background = grad;
+        // let cp = this.opts.colorProgress;
+        // let ct = this.opts.colorTrack;
+        // let perc = this.timeline.value/100;
+        // let grad = 'linear-gradient(to right, '+cp+' 0%, '+cp+' '+perc +'%, '+ct+' '+perc+'%, '+ct+' 100%)';
+        // this.timeline.style.background = grad;
+
+        this.timeline.style.setProperty('--value', "".concat(this.timeline.value / this.timeline.max * 100, "%"));
     }
 
 
@@ -396,11 +467,14 @@ export default class sas_player{
 
     // Event listener for the volume bar
     progressVolume (){
-        let cp = this.opts.colorProgress;
-        let ct = this.opts.colorTrack;
-        let perc = this.volume.value*100;
-        let grad = 'linear-gradient(to right, '+cp+' 0%, '+cp+' '+perc +'%, '+ct+' '+perc+'%, '+ct+' 100%)';
-        this.volume.style.background = grad;
+
+        // let cp = this.opts.colorProgress;
+        // let ct = this.opts.colorTrack;
+        // let perc = this.volume.value*100;
+        // let grad = 'linear-gradient(to right, '+cp+' 0%, '+cp+' '+perc +'%, '+ct+' '+perc+'%, '+ct+' 100%)';
+        // this.volume.style.background = grad;
+
+        this.volume.style.setProperty('--value', "".concat(this.volume.value / this.volume.max * 100, "%"));
     }
 
 
@@ -465,10 +539,6 @@ export default class sas_player{
         }
     }
 
-
-}
-
-
     /********** BUFFER ***********
         https://developer.mozilla.org/en-US/Apps/Fundamentals/Audio_and_video_delivery/buffering_seeking_time_ranges
         http://jsbin.com/badimipi/1/edit?html,output
@@ -476,41 +546,34 @@ export default class sas_player{
         <video src="video.mp4" preload="auto"></video>
     */
 
-    // let controlBuffer = false;
+    bufferRange() {
 
-    // let bufferHTML = `
-    //     <div class="buffered">
-    //       <span id="buffered-amount"></span>
-    //     </div>
-    //     <div class="progress">
-    //       <span id="progress-amount"></span>
-    //     </div>
-    // `;
+        // var bufferedTimeRanges = this.media.buffered;
+        // console.log(bufferedTimeRanges)
 
-    // if(controlBuffer){
+        // // When buffer is 1 whole video is buffered
+        //   if (Math.round(this.media.buffered.end(0)) / Math.round(this.media.seekable.end(0)) === 1) {
+        //     // Entire video is downloaded
 
-    //     video.addEventListener('progress', function() {
-    //         let bufferedEnd = video.buffered.end(video.buffered.length - 1);
-    //         let duration =  video.duration;
+        //     console.log('Entire media is downloaded')
+        //  }
 
-    //         console.log('duration: '+ duration +' | buffered: '+ bufferedEnd)
 
-    //         if(duration == bufferedEnd){
-    //             console.log('---- buffer Complete')
-    //         }
-            
-    //         if (duration > 0) {
-    //             document.getElementById('buffered-amount').style.width = ((bufferedEnd / duration)*100) + "%";
-    //         }
-    //     });
+        if (this.duration > 0) {
+            this.elem.classList.remove('player--loading');
+            for (let i = 0; i < this.media.buffered.length; i++) {
+                if (this.media.buffered.start(this.media.buffered.length - 1 - i) < this.media.currentTime) {
 
-    //     video.addEventListener('timeupdate', function() {
-    //         let duration =  video.duration;
-    //         if (duration > 0) {
-    //             document.getElementById('progress-amount').style.width = ((video.currentTime / duration)*100) + "%";
-    //         }
-    //     });
-    // }
+                    console.log('bufferedTimeRanges: ', (this.media.buffered.end(this.media.buffered.length - 1 - i) / this.duration) * 100 + "%");
+
+                    this.elem.querySelector("#progress-buffer").style.width = (this.media.buffered.end(this.media.buffered.length - 1 - i) / this.duration) * 100 + "%";
+                    break;
+                }
+            }
+        }
+    }
+}
+
 
 
 

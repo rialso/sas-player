@@ -1,5 +1,13 @@
 
 
+#video{
+    width: 400px;
+    position: relative;
+}
+#video video{
+    width: 100%;
+}
+
 .playlist {
     -moz-osx-font-smoothing: auto;
     -webkit-font-smoothing: subpixel-antialiased;

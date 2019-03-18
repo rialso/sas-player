@@ -1,5 +1,5 @@
 
-
+import video   from './video.js';
 import player   from './player.js';
 
 
@@ -10,9 +10,9 @@ import player   from './player.js';
 
 function init (){
 
-    let data = JSONdata;
+	video(data_video)
 
-    player(data);
+    player(data_audio);
 }
 
 init();

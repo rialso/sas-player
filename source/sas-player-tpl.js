@@ -2,7 +2,6 @@
 export default `
 
 <style>
-    @import url('https://fonts.googleapis.com/css?family=Oxygen:300,400,700');
 
     :host {
         --orange: #e67e22;
@@ -11,7 +10,116 @@ export default `
 
     /*******************/
 
-    input[type=range][orient=vertical]{
+
+
+    /*---------------------------------------*/
+    /*---------------------------------------*/
+    /*---------------------------------------*/
+
+    .player__controls{
+        display: inline-flex;
+        flex-direction: row;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.9rem;
+
+        margin-bottom: 10px;
+    }
+
+    .player__controls .current-track__progress{
+        width: 100%;
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+
+    .player__controls .current-controls,
+    .player__controls .current-track__progress,
+    .player__controls .current-track__volume{
+        display: inline-flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+    .player__controls .current-track__volume{
+        width: 50%;
+        max-width: 120px;
+        margin-left: 5px;
+    }
+
+/*    .player__controls .current-track__progress input,
+    .player__controls .current-track__volume input{
+        width: 100%;
+        margin-right: 5px;
+        margin-left: 5px;
+    }*/
+    .player__controls .current-track__volume input{
+        margin-left: 5px !important;
+    }
+
+    .player__controls .time-duration:before{
+        content: '/';
+        margin-right: 5px;
+        margin-left: 5px;
+    }
+
+    .player__controls.inside{
+        background: #2a2a2a;
+        box-sizing: border-box;
+        border-radius: 5px;
+        height: 40px;
+        -moz-box-sizing: border-box;
+
+        font-family: Arial, sans-serif;
+        position: absolute;
+        bottom: 10px;
+        left: 2.5%;
+        z-index: 2;
+        opacity: 1;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        -webkit-transition: opacity 0.3s ease-in;
+        transition: opacity 0.3s ease-in;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        user-select: none;
+
+        width: 95%;
+        padding: 8px;
+        color: #ccc;
+    }
+
+    /*---------------------------------------*/
+    /*---------------------------------------*/
+    /*---------------------------------------*/
+
+
+
+
+    .current-track__progress .progress-buffer {
+        -webkit-appearance: none;
+        background: 0 0;
+        border: 0;
+        border-radius: 100px;
+        height: 4px;
+        left: 0;
+        margin-top: -2.5px;
+        padding: 0;
+        position: absolute;
+        top: 50%;
+    }
+
+    #player .player__controls .progress-buffer {
+        color: rgba(183,197,205,.66) !important;
+    }
+
+
+    /*---------------------------------------*/
+    /*---------------------------------------*/
+    /*---------------------------------------*/
+
+
+    .player__controls input[type=range][orient=vertical]{
     /*    writing-mode: bt-lr; /-* IE *-/
         -webkit-appearance: slider-vertical; /-* WebKit *-/
         width: 8px;
@@ -28,33 +136,28 @@ export default `
 
 
 
-    input[type=range].timeline {
+    .player__controls input[type=range].timeline {
         -webkit-appearance: none;
-
-        transition: box-shadow .3s ease;
-
-
+        background: 0 0;
+        border: 0;
+        border-radius: 28px;
+        /*color: #1aafff;*/
+        color: #1ed760;
         display: block;
+        height: 20px;
+        margin: 0;
+        padding: 0;
+        transition: box-shadow .3s ease;
         width: 100%;
-        height: 2px;
-
-
-        /*border: 1px solid black;*/
-
-        -webkit-border-radius: 20px;
-        -moz-border-radius: 20px;
-        border-radius: 20px;
-
-        font-size: 16px;
-        /*background-color: #242323;*/
     }
-    input[type=range].timeline:focus {
+
+    .player__controls input[type=range].timeline:focus {
       /*box-shadow: none;*/
       outline: none;
     }
 
 
-    input[type=range].timeline::-webkit-slider-thumb {
+    .player__controls input[type=range].timeline::-webkit-slider-thumb {
     /*
         height: 0px;
         width:  0px;
@@ -67,20 +170,22 @@ export default `
       */
       /*
         border: 1px solid #1ed760;
+        background-color: black;
       */
-      transition: 0.1s ease-in;
+        transition: all .2s ease;
+        border-radius: 100%;
 
         display: block;
-      cursor:pointer;
-      
+        cursor:pointer;
+
         -webkit-appearance: none;
-      width: 14px;
-      height: 14px;
-      margin-top: 1px;
-      background-color: black;
-      border-radius: 1em;
-      border: 2px solid #1ed760;
-      cursor: pointer;
+        width: 14px;
+        height: 14px;
+        margin-top: -4.7px;
+        background-color: #fff;
+        border-radius: 1em;
+        border: 2px solid #1ed760;
+        cursor: pointer;
     }
 
     /*
@@ -93,12 +198,23 @@ export default `
 
 
 
-    input[type='range']::-webkit-slider-runnable-track {
-      position: relative;
+    .player__controls input[type='range']::-webkit-slider-runnable-track {
+/*      position: relative;
       width: 31.875em;
       height: 1em;
       border-radius: 0.5em;
-      background: transparent;
+      background: transparent;*/
+
+        background: 0 0;
+        border: 0;
+        border-radius: 2px;
+        height: 4px;
+        transition: box-shadow .3s ease;
+        -webkit-user-select: none;
+        user-select: none;
+
+        transition: box-shadow .3s ease;
+        background-image: linear-gradient(to right, currentColor var(--value, 0), transparent var(--value, 0))
     }
 
     /*.js input[type='range'].timeline::-webkit-slider-runnable-track {
@@ -107,173 +223,95 @@ export default `
       background-size: 33% 100%;
     }*/
 
+    .player__controls input[type=range]::-webkit-slider-runnable-track {
+        background-color: rgba(183, 197, 205, .66)
+    }
 
     /*---------------------------------------*/
 
-    input::-moz-range-thumb{
-        width: 20px;
-        height: 20px;
-        border:1px solid black;
-
-        -webkit-border-radius: 10px;
-        border-radius: 10px;
-        background: #80e4df; /* Old browsers */
-
-        cursor:pointer;
-        cursor: -webkit-grab;
+    .player__controls input[type=range]::-moz-range-thumb{
+        background: #fff;
+        border: 0;
+        border-radius: 100%;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, .15), 0 0 0 1px rgba(47, 52, 61, .2);
+        height: 14px;
+        position: relative;
+        transition: all .2s ease;
+        width: 14px
     }
-    input[type=range].timeline::-moz-range-thumb:hover {
-        width: 20px;
-        height: 20px;
-    }
-
-
-    /*---------------------------------------*/
-
-    input::-ms-thumb{
-        width: 20px;
-        height: 20px;
-        border:1px solid black;
-
-        -webkit-border-radius: 10px;
-        border-radius: 10px;
-        background: #80e4df; /* Old browsers */
-
-        cursor:pointer;
-        cursor: -webkit-grab;
-    }
-    input[type=range].timeline::-ms-thumb:hover {
+    .player__controls input[type=range].timeline::-moz-range-thumb:hover {
         width: 20px;
         height: 20px;
     }
 
+
     /*---------------------------------------*/
-    /*---------------------------------------*/
-    /*---------------------------------------*/
 
-    .time-duration:before{
-        content: '/';
-        margin-right: 5px;
-        margin-left: 5px;
+    .player__controls input[type=range]::-ms-thumb {
+        background: #fff;
+        border: 0;
+        border-radius: 100%;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, .15), 0 0 0 1px rgba(47, 52, 61, .2);
+        height: 14px;
+        position: relative;
+        transition: all .2s ease;
+        width: 14px;
+        margin-top: 0
     }
-
-    .volume{
-        width: 80px !important;
-    }
-
-
-    .player__controls{
-        display: inline-flex;
-        flex-direction: row;
-        width: 100%;
-        justify-content: center;
-        align-items: center;
-        font-size: 0.9rem;
-    }
-
-    .player__controls .current-track__progress{
-        width: 100%;
-    }
-
-    .player__controls .current-track__progress,
-    .player__controls .current-controls,
-    .player__controls .current-track__volume{
-        display: inline-flex;
-        flex-direction: row;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .player__controls .current-track__progress,
-    .player__controls .current-track__volume{
-            margin-right: 10px;
-            margin-left: 10px;
+    .player__controls input[type=range].timeline::-ms-thumb:hover {
+        width: 20px;
+        height: 20px;
     }
 
 
-
-
-
-
-
-
-    button{
-        text-align: center;
-        min-width: 50px;
+    .current-track__progress input[type=range] {
+        position: relative;
+        z-index: 2;
     }
 
-    .button-label{
+    /*********************************************/
 
+    .progress-buffer::-webkit-progress-bar {
+        background: 0 0;
+        transition: width .2s ease
     }
-    .splyr__sr-only.label--pressed{
-        display: none;
+
+    .progress-buffer::-webkit-progress-value {
+        background: currentColor;
+        border-radius: 100px;
+        min-width: 4px
+    }
+
+    .progress-buffer::-moz-progress-bar {
+        background: currentColor;
+        border-radius: 100px;
+        min-width: 4px;
+        transition: width .2s ease
+    }
+
+    .progress-buffer::-ms-fill {
+        border-radius: 100px;
+        transition: width .2s ease
+    }
+
+    .player--loading .progress-buffer {
+        animation: player-progress 1s linear infinite;
+        background-image: linear-gradient(-45deg, rgba(47, 52, 61, .6) 25%, transparent 25%, transparent 50%, rgba(47, 52, 61, .6) 50%, rgba(47, 52, 61, .6) 75%, transparent 75%, transparent);
+        background-repeat: repeat-x;
+        background-size: 25px 25px;
+        color: transparent
+    }
+
+    @keyframes player-progress {
+        to {
+            background-position: 25px 0
+        }
     }
 
 
 </style>
 
 
-
-
-<section class="str__wrap">
-    <section id="header" class="header">
-
-
-        <div class="player__wrap">
-            <div class="current-track__info">
-              <div class="playing__art">
-                <img id="cover-art" src="../web/src/imgs/noCover.jpg" alt="Album Art">
-              </div>
-              <div id="player-info" class="player-info">
-                    <p> </p>
-                    <h3> </h3>
-              </div>
-            </div>
-          
-             <div class="current-track__progress">
-                    <span id="curtimetext" class="timebox">00:00</span>
-                    <input type="range" id="timeline" class="timeline" min="1" max="10000" step="1" value="0">
-                    <span id="durtimetext" class="timebox">00:00</span>
-                    <!--
-                    <div class="timebox">            
-                        <span id="curtimetext">00:00</span> / <span id="durtimetext">00:00</span>        
-                    </div>
-                    -->
-           </div>
-
-            <div class="current-track__actions">
-                <!-- 
-                <button id="prevbtn" class="btn__prev">Prev</button>    
-                <button id="playpausebtn" class="btn__play">Play/Pause</button> 
-                <button id="nextbtn" class="btn__next">Next</button> 
-                -->
-                <span id="prevbtn" class="btn__prev icon" farm-icon="#icon-previous"></span>
-                <span id="playpausebtn" class="btn__play icon">
-                  <span class="icon_play" farm-icon="#icon-play"></span>
-                  <span class="icon_pause" farm-icon="#icon-pause"></span>
-                </span>
-                <span id="nextbtn" class="btn__next icon" farm-icon="#icon-next"></span>
-            </div>
-          
-
-          
-           <div class="current-track__options">
-                  <span class="volumebox">
-                      <!--<button id="mutebtn">mute</button>-->
-                        
-                        <input id="volumeslider" orient="vertical" type="range" min="0" max="100" value="100" step="1"> 
-                  </span>
-                <span id="mutebtn" class="icon btn__volume" farm-icon="#icon-volume-medium"></span>
-                <span id="sufflebtn" class="btn__suffle icon" farm-icon="#icon-suffle"></span>
-                <span id="repeatbtn" class="btn__repeat icon" farm-icon="#icon-clockwise"></span>
-            </div>
-        </div>
-
-
-    </section>
-
-    <section class="content"></section>
-</section>
 
 `;   
 

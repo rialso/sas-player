@@ -5,7 +5,7 @@ import sas_player   from './../../source/sas-player.js';
 function init (object){
     let data = object;
     let eplayer = document.querySelector('#player');
-    let eplaylist = document.querySelector('#playlist')
+
 
     let audio = document.createElement('audio');
     //audio.src = 'a.mp3';
@@ -13,7 +13,6 @@ function init (object){
 
     var test = new sas_player(audio, {
         debug       :true,
-        elem        :eplayer,
         //data        :data,
         current        :(obj) => {
             console.log('[sasPlayer current]: ', obj)
@@ -25,10 +24,16 @@ function init (object){
         }
     });
 
-    let div = document.querySelector('#playlist')
+    let eplaylist = document.querySelector('#playlist')
+    let next = document.querySelector('#nextbtn');
+    let prev = document.querySelector('#prevbtn');
+
+    eplaylist.addEventListener('click', (e) => playlistControl(e) )
+    // next.addEventListener('click', () => nextTrack() );
+    // prev.addEventListener('click', () => prevTrack() );
 
     let playlist = [];
-    let audioPos = 0;
+    let audioPos = -1;
 
     for(let a of data){
         
@@ -43,11 +48,14 @@ function init (object){
 
         eplaylist.appendChild(li);
 
-        a.file = a.file.replace('/Users/rtb/Music/__info/music/', '../../')
+        // a.file = a.file.replace('/Users/rtb/Music/__info/music/', '../../')
         playlist.push( a )
     }
 
-    eplaylist.addEventListener('click', (e) => {
+    audio.src = playlist[0].file;
+
+    // eplaylist.addEventListener('click', (e) => {
+    function playlistControl(e){
 
         //let target = e.currentTarget;
         let target = e.target;
@@ -55,12 +63,11 @@ function init (object){
         let li = x.closest('li')
 
         let n = 0;
-        for(let i of div.childNodes){
+        for(let i of eplaylist.childNodes){
             i.classList.remove('highlighted');
             if(li == i){
                 i.classList.add('highlighted');
-
-                if(n!==audioPos){
+                if(n!==audioPos || audioPos == -1){
                     audioPos = n;
                     loadTrack();
                     test.play();
@@ -68,7 +75,7 @@ function init (object){
             }
             n++
         }
-    });
+    };
 
     function update(){
         let n = 0;
@@ -81,12 +88,6 @@ function init (object){
             n++
         }
     }
-
-    let next = document.querySelector('#nextbtn');
-    let prev = document.querySelector('#prevbtn');
-
-    next.addEventListener('click', () => nextTrack() );
-    prev.addEventListener('click', () => prevTrack() );
 
     function nextTrack(){
         if(audioPos == (playlist.length - 1)){
